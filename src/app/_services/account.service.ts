@@ -30,6 +30,7 @@ export class AccountService {
         return this.http.post<any>(`${baseUrl}/authenticate`, { email, password }, { withCredentials: true })
             .pipe(map(account => {
                 this.accountSubject.next(account);
+                localStorage.setItem('refreshToken', account.refreshToken); // ← store it
                 this.startRefreshTokenTimer();
                 return account;
             }));
@@ -43,9 +44,11 @@ export class AccountService {
     }
 
     refreshToken() {
-        return this.http.post<any>(`${baseUrl}/refresh-token`, {}, { withCredentials: true })
+        const token = localStorage.getItem('refreshToken'); // ← read it
+        return this.http.post<any>(`${baseUrl}/refresh-token`, { token }, { withCredentials: true })
             .pipe(map((account) => {
                 this.accountSubject.next(account);
+                localStorage.setItem('refreshToken', account.refreshToken); // ← update it
                 this.startRefreshTokenTimer();
                 return account;
             }));
